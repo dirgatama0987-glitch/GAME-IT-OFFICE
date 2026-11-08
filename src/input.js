@@ -8,7 +8,9 @@ export const input = {
   started: false,
   onToggleCam() {},
   onZoom() {},
-  onInteract() {}
+  onInteract() {},
+  onKey() {},
+  onPrimary() {}
 };
 
 export function look(dx, dy) {
@@ -25,6 +27,7 @@ export function initInput(canvas) {
     input.keys[e.code] = true;
     if (e.code === 'KeyV') input.onToggleCam();
     if (e.code === 'KeyE') input.onInteract();
+    input.onKey(e.code);
     if (e.code === 'Space') e.preventDefault();
   });
   addEventListener('keyup', (e) => { input.keys[e.code] = false; });
@@ -41,7 +44,9 @@ export function initInput(canvas) {
     if (document.pointerLockElement || drag) look(e.movementX, e.movementY);
   });
   canvas.addEventListener('click', () => {
-    if (input.started && !coarse && !document.pointerLockElement && canvas.requestPointerLock) canvas.requestPointerLock();
+    if (!input.started || coarse) return;
+    if (document.pointerLockElement) input.onPrimary();
+    else if (canvas.requestPointerLock) canvas.requestPointerLock();
   });
 
   $('go').onclick = () => {
@@ -50,7 +55,7 @@ export function initInput(canvas) {
     if (coarse) $('touch').style.display = 'block';
     else if (canvas.requestPointerLock) canvas.requestPointerLock();
   };
-  if (coarse) $('help').textContent = 'Joystick kiri untuk jalan · geser layar kanan untuk melihat · tombol Lompat, Kamera, dan E (interaksi)';
+  if (coarse) $('help').textContent = 'Joystick kiri untuk jalan · geser layar kanan untuk melihat · tombol Lompat, Kamera, E (interaksi), dan Bangun';
 
   // joystick
   const joyEl = $('joy'), knob = $('knob');
@@ -88,4 +93,5 @@ export function initInput(canvas) {
   $('bJ').addEventListener('pointerup', () => { input.keys.JumpBtn = false; });
   $('bV').addEventListener('pointerdown', () => input.onToggleCam());
   $('bE').addEventListener('pointerdown', () => input.onInteract());
+  $('bB').addEventListener('pointerdown', () => input.onKey('KeyB'));
 }
