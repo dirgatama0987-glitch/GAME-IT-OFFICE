@@ -2,7 +2,7 @@ import './style.css';
 import * as THREE from 'three';
 import { buildWorld, roomAt } from './world.js';
 import { createPlayer } from './player.js';
-import { camera, view, toggleView, updateCamera } from './camera.js';
+import { camera, view, toggleView, zoomView, updateCamera } from './camera.js';
 import { input, initInput } from './input.js';
 
 const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -14,7 +14,8 @@ const scene = new THREE.Scene();
 buildWorld(scene);
 const player = createPlayer(scene);
 
-input.onToggleCam = () => toggleView(player.group);
+input.onToggleCam = toggleView;
+input.onZoom = zoomView;
 initInput(renderer.domElement);
 
 function resize() {
@@ -33,8 +34,8 @@ function tick(now) {
   last = now;
 
   if (input.started) {
-    player.update(dt, view.fp);
-    updateCamera(player.group, input.yaw, input.pitch);
+    const st = player.update(dt, view.fp);
+    updateCamera(dt, player.group, input.yaw, input.pitch, st);
     locT += dt;
     if (locT > 0.2) {
       locT = 0;
