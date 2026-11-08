@@ -9,20 +9,31 @@ export function createPlayer(scene) {
   const group = new THREE.Group();
   scene.add(group);
 
-  const part = (geo, color, y, x = 0) => {
+  const part = (geo, color, y, x = 0, z = 0) => {
     const m = new THREE.Mesh(geo, mat(color));
-    m.position.set(x, y, 0);
+    m.position.set(x, y, z);
     m.castShadow = true;
     group.add(m);
     return m;
   };
-  part(new THREE.BoxGeometry(0.55, 0.75, 0.3), 0x2f6fd0, 1.15);               // badan
-  part(new THREE.BoxGeometry(0.36, 0.36, 0.36), 0xf1c9a5, 1.75);              // kepala
-  part(new THREE.BoxGeometry(0.3, 0.08, 0.05), 0x1a1f27, 1.78).position.z = -0.19; // visor (depan)
-  const legGeo = new THREE.BoxGeometry(0.22, 0.75, 0.24); legGeo.translate(0, -0.375, 0);
-  const armGeo = new THREE.BoxGeometry(0.16, 0.7, 0.2); armGeo.translate(0, -0.3, 0);
-  const legL = part(legGeo, 0x28303d, 0.77, -0.15), legR = part(legGeo, 0x28303d, 0.77, 0.15);
-  const armL = part(armGeo, 0x2f6fd0, 1.48, -0.37), armR = part(armGeo, 0x2f6fd0, 1.48, 0.37);
+  const SKIN = 0xf1c9a5, SHIRT = 0x2f6fd0, PANTS = 0x28303d, HAIR = 0x2a1d14, SHOE = 0x1b1e24;
+  part(new THREE.CapsuleGeometry(0.26, 0.3, 6, 16), SHIRT, 1.18);                                         // badan
+  part(new THREE.SphereGeometry(0.21, 24, 16), SKIN, 1.78);                                                // kepala
+  part(new THREE.SphereGeometry(0.225, 24, 12, 0, Math.PI * 2, 0, Math.PI * 0.55), HAIR, 1.8, 0, 0.025);  // rambut
+  part(new THREE.SphereGeometry(0.03, 8, 8), 0x14171c, 1.79, -0.08, -0.19);                                // mata
+  part(new THREE.SphereGeometry(0.03, 8, 8), 0x14171c, 1.79, 0.08, -0.19);
+  const legGeo = new THREE.CapsuleGeometry(0.1, 0.6, 4, 12); legGeo.translate(0, -0.4, 0);
+  const armGeo = new THREE.CapsuleGeometry(0.07, 0.45, 4, 10); armGeo.translate(0, -0.3, 0);
+  const legL = part(legGeo, PANTS, 0.8, -0.13), legR = part(legGeo, PANTS, 0.8, 0.13);
+  const armL = part(armGeo, SHIRT, 1.46, -0.35), armR = part(armGeo, SHIRT, 1.46, 0.35);
+  [legL, legR].forEach((l) => {   // sepatu ikut bergerak bersama kaki
+    const shoe = new THREE.Mesh(new THREE.SphereGeometry(0.11, 12, 8), mat(SHOE));
+    shoe.scale.set(1, 0.6, 1.5); shoe.position.set(0, -0.76, -0.05); shoe.castShadow = true; l.add(shoe);
+  });
+  [armL, armR].forEach((a) => {   // tangan
+    const hand = new THREE.Mesh(new THREE.SphereGeometry(0.07, 10, 8), mat(SKIN));
+    hand.position.set(0, -0.55, 0); a.add(hand);
+  });
 
   group.position.set(0, 0, 9.5);
 
