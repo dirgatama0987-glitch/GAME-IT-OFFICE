@@ -6,7 +6,8 @@ export const input = {
   joyX: 0, joyZ: 0, joyRun: false,
   yaw: 0, pitch: 0.25,
   started: false,
-  onToggleCam() {}
+  onToggleCam() {},
+  onZoom() {}
 };
 
 export function look(dx, dy) {
@@ -25,6 +26,11 @@ export function initInput(canvas) {
     if (e.code === 'Space') e.preventDefault();
   });
   addEventListener('keyup', (e) => { input.keys[e.code] = false; });
+  canvas.addEventListener('wheel', (e) => {
+    if (!input.started) return;
+    e.preventDefault();
+    input.onZoom(e.deltaY * 0.003);
+  }, { passive: false });
 
   canvas.addEventListener('mousedown', () => { if (input.started) drag = true; });
   addEventListener('mouseup', () => { drag = false; });
