@@ -7,7 +7,7 @@ Dibuat dengan HTML, CSS, JavaScript, Three.js, dan Vite.
 
 - [x] Tahap 1: dunia 3D dan gerak karakter (+ kamera FP/TP dasar)
 - [x] Tahap 2: kamera first person dan third person (transisi halus, anti tembus dinding, zoom, head bob, crosshair)
-- [ ] Tahap 3: objek interaktif dan sistem pintu (tombol E)
+- [x] Tahap 3: objek interaktif (komputer) dan sistem pintu geser (tombol E)
 - [ ] Tahap 4: gedung kantor dan penempatan furniture (Build Mode)
 - [ ] Tahap 5: ekonomi tycoon dan shop
 - [ ] Tahap 6: NPC karyawan (state + waypoint)
@@ -24,7 +24,7 @@ Dibuat dengan HTML, CSS, JavaScript, Three.js, dan Vite.
 | Kamera | Mouse (klik layar untuk mengunci) | Geser layar kanan |
 | Ganti kamera | V | Tombol Kamera |
 | Zoom kamera (third person) | Scroll mouse | - |
-| Interaksi | E (tahap 3) | Tombol interaksi (tahap 3) |
+| Interaksi (pintu, komputer) | E | Tombol E |
 
 ## Jalankan di komputer
 
@@ -62,6 +62,7 @@ src/
 ├─ world.js       gedung, ruangan, perabot, daftar collider
 ├─ collision.js   tabrakan karakter vs dinding/perabot
 ├─ player.js      model dan gerak karakter
+├─ interact.js    pintu geser dan komputer interaktif (tombol E)
 ├─ camera.js      kamera first person dan third person
 ├─ input.js       kontrol PC dan mobile
 └─ style.css      tampilan HUD dan kontrol sentuh
