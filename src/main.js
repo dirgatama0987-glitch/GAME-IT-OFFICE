@@ -5,6 +5,8 @@ import { createPlayer } from './player.js';
 import { camera, view, toggleView, zoomView, updateCamera } from './camera.js';
 import { input, initInput } from './input.js';
 import { buildInteractives, updateInteractives, useNearest } from './interact.js';
+import { updateEconomy } from './economy.js';
+import { initBuild, updateBuild, buildKey, buildConfirm, isBuilding } from './build.js';
 
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
@@ -14,12 +16,16 @@ document.getElementById('game').appendChild(renderer.domElement);
 const scene = new THREE.Scene();
 buildWorld(scene);
 buildInteractives(scene);
+initBuild(scene);
 const player = createPlayer(scene);
 
 input.onToggleCam = toggleView;
 input.onZoom = zoomView;
-input.onInteract = useNearest;
+input.onInteract = () => (isBuilding() ? buildConfirm() : useNearest());
+input.onKey = buildKey;
+input.onPrimary = buildConfirm;
 initInput(renderer.domElement);
+updateEconomy(0);
 
 function resize() {
   renderer.setSize(innerWidth, innerHeight);
@@ -40,6 +46,8 @@ function tick(now) {
     const st = player.update(dt, view.fp);
     updateCamera(dt, player.group, input.yaw, input.pitch, st);
     updateInteractives(dt, player.group.position);
+    updateEconomy(dt);
+    updateBuild(dt, player.group.position, input.yaw);
     locT += dt;
     if (locT > 0.2) {
       locT = 0;
