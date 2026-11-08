@@ -4,6 +4,7 @@ import { buildWorld, roomAt } from './world.js';
 import { createPlayer } from './player.js';
 import { camera, view, toggleView, zoomView, updateCamera } from './camera.js';
 import { input, initInput } from './input.js';
+import { buildInteractives, updateInteractives, useNearest } from './interact.js';
 
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
@@ -12,10 +13,12 @@ document.getElementById('game').appendChild(renderer.domElement);
 
 const scene = new THREE.Scene();
 buildWorld(scene);
+buildInteractives(scene);
 const player = createPlayer(scene);
 
 input.onToggleCam = toggleView;
 input.onZoom = zoomView;
+input.onInteract = useNearest;
 initInput(renderer.domElement);
 
 function resize() {
@@ -36,6 +39,7 @@ function tick(now) {
   if (input.started) {
     const st = player.update(dt, view.fp);
     updateCamera(dt, player.group, input.yaw, input.pitch, st);
+    updateInteractives(dt, player.group.position);
     locT += dt;
     if (locT > 0.2) {
       locT = 0;
