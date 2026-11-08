@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import { solids } from './world.js';
 import { coarse } from './input.js';
 import { addProducer, removeProducer, INCOME } from './economy.js';
+import { attachComputer } from './furniture.js';
 
 const items = [];            // semua objek yang bisa diajak interaksi
 const doors = [];
@@ -85,21 +86,6 @@ const PC_DEFS = [
   [13.25, 2.2, 0.8], [-13.5, -10.6, 0.9], [0, 7.0, 1.0]
 ];
 
-// memasang monitor, tiang, dan keyboard ke sebuah grup; mengembalikan mesh layarnya
-export function attachComputer(g) {
-  const add = (geo, color, px, py, pz, basic) => {
-    const m = new THREE.Mesh(geo, basic ? new THREE.MeshBasicMaterial({ color }) : new THREE.MeshLambertMaterial({ color }));
-    m.position.set(px, py, pz);
-    g.add(m);
-    return m;
-  };
-  add(new THREE.BoxGeometry(0.12, 0.15, 0.1), 0x2b2f36, 0, 0.075, 0);                       // tiang
-  add(new THREE.BoxGeometry(0.64, 0.42, 0.04), 0x1b1e24, 0, 0.36, 0);                       // bingkai monitor
-  const screen = add(new THREE.PlaneGeometry(0.56, 0.34), 0x15181d, 0, 0.36, 0.025, true);  // layar
-  add(new THREE.BoxGeometry(0.4, 0.02, 0.14), 0x2b2f36, 0, 0.01, 0.28);                     // keyboard
-  return screen;
-}
-
 // logika komputer: bisa dinyalakan (E) dan menghasilkan uang saat menyala
 export function createPcLogic(screen, x, z) {
   const pc = { name: 'komputer', center: new THREE.Vector3(x, 0, z), radius: 2.4, on: false };
@@ -107,7 +93,7 @@ export function createPcLogic(screen, x, z) {
   pc.use = () => {
     pc.on = !pc.on;
     screen.material.color.set(pc.on ? 0x4fb3ff : 0x15181d);
-    toast(pc.on ? 'Komputer menyala' : 'Komputer dimatikan');
+    toast(pc.on ? 'Komputer menyala (+$' + INCOME.pc + '/dtk)' : 'Komputer dimatikan');
   };
   pc.income = () => (pc.on ? INCOME.pc : 0);
   screen.material.color.set(0x15181d);
