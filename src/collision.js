@@ -26,3 +26,27 @@ export function collide(p) {
     }
   }
 }
+
+// Sinar dari titik 'from' ke 'to' vs kotak 3D (dinding dan perabot).
+// Mengembalikan 0..1 = posisi tabrakan pertama di sepanjang sinar, atau 1 jika bebas.
+export function rayClip(from, to) {
+  let tmin = 1;
+  const d = [to.x - from.x, to.y - from.y, to.z - from.z];
+  const o = [from.x, from.y, from.z];
+  for (const s of solids) {
+    const lo = [s.x1, 0, s.z1], hi = [s.x2, s.h, s.z2];
+    let t0 = 0, t1 = 1, hit = true;
+    for (let i = 0; i < 3; i++) {
+      if (Math.abs(d[i]) < 1e-8) {
+        if (o[i] < lo[i] || o[i] > hi[i]) { hit = false; break; }
+      } else {
+        let a = (lo[i] - o[i]) / d[i], b = (hi[i] - o[i]) / d[i];
+        if (a > b) { const t = a; a = b; b = t; }
+        t0 = Math.max(t0, a); t1 = Math.min(t1, b);
+        if (t0 > t1) { hit = false; break; }
+      }
+    }
+    if (hit && t0 < tmin) tmin = t0;
+  }
+  return tmin;
+}
