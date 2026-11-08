@@ -20,7 +20,7 @@ export function addBox(scene, x1, z1, x2, z2, h, color, collide = true) {
   m.position.set((x1 + x2) / 2, h / 2, (z1 + z2) / 2);
   m.castShadow = m.receiveShadow = true;
   scene.add(m);
-  if (collide) solids.push({ x1, z1, x2, z2 });
+  if (collide) solids.push({ x1, z1, x2, z2, h });
   return m;
 }
 
