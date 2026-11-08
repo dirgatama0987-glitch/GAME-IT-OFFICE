@@ -8,8 +8,8 @@ Dibuat dengan HTML, CSS, JavaScript, Three.js, dan Vite.
 - [x] Tahap 1: dunia 3D dan gerak karakter (+ kamera FP/TP dasar)
 - [x] Tahap 2: kamera first person dan third person (transisi halus, anti tembus dinding, zoom, head bob, crosshair)
 - [x] Tahap 3: objek interaktif (komputer) dan sistem pintu geser (tombol E)
-- [ ] Tahap 4: gedung kantor dan penempatan furniture (Build Mode)
-- [ ] Tahap 5: ekonomi tycoon dan shop
+- [x] Tahap 4: Build Mode (taruh, putar, pindah, hapus furniture di dunia 3D)
+- [x] Tahap 5: ekonomi tycoon dan shop (uang virtual, harga, penghasilan per detik)
 - [ ] Tahap 6: NPC karyawan (state + waypoint)
 - [ ] Tahap 7: misi dan manajemen bisnis
 - [ ] Tahap 8: save system dan optimasi
@@ -25,6 +25,9 @@ Dibuat dengan HTML, CSS, JavaScript, Three.js, dan Vite.
 | Ganti kamera | V | Tombol Kamera |
 | Zoom kamera (third person) | Scroll mouse | - |
 | Interaksi (pintu, komputer) | E | Tombol E |
+| Build Mode | B | Tombol Bangun |
+| Pilih item di shop (Meja, Kursi, Komputer, Server, Tanaman, Lemari, Sofa) | 1 sampai 7 | Tombol di panel |
+| Putar / taruh / pindah / jual (60%) | R / E atau klik / F / X | Tombol di panel |
 
 ## Jalankan di komputer
 
@@ -63,6 +66,9 @@ src/
 ├─ collision.js   tabrakan karakter vs dinding/perabot
 ├─ player.js      model dan gerak karakter
 ├─ interact.js    pintu geser dan komputer interaktif (tombol E)
+├─ economy.js     uang virtual dan penghasilan per detik
+├─ build.js       Build Mode: shop, taruh, pindah, jual furniture
+├─ furniture.js   model 3D furnitur yang detail
 ├─ camera.js      kamera first person dan third person
 ├─ input.js       kontrol PC dan mobile
 └─ style.css      tampilan HUD dan kontrol sentuh
