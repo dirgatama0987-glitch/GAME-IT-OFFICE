@@ -63,6 +63,7 @@ export function createPlayer(scene) {
     const sw = moving ? Math.sin(walkT) * 0.7 : 0;
     legL.rotation.x = sw; legR.rotation.x = -sw;
     armL.rotation.x = -sw; armR.rotation.x = sw;
+    return { moving, run: !!run, grounded };
   }
 
   return { group, update };
