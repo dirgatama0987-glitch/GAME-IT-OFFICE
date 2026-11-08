@@ -2,12 +2,14 @@
 import * as THREE from 'three';
 import { solids } from './world.js';
 import { coarse } from './input.js';
+import { addProducer, removeProducer, INCOME } from './economy.js';
 
 const items = [];            // semua objek yang bisa diajak interaksi
 const doors = [];
 const playerPos = new THREE.Vector3();
 let current = null;          // objek terdekat dari pemain
 let toastT = 0;
+let enabled = true;
 
 export function toast(msg) {
   const el = document.getElementById('toast');
@@ -16,9 +18,16 @@ export function toast(msg) {
   toastT = 2.2;
 }
 
+export function setInteractEnabled(v) { enabled = v; }
+export function registerItem(it) { items.push(it); }
+export function unregisterItem(it) {
+  const i = items.indexOf(it);
+  if (i >= 0) items.splice(i, 1);
+  if (current === it) current = null;
+}
+
 // ---------- Pintu geser ----------
 // [nama, sumbu celah, garis tetap, awal, akhir, arah geser, warna]
-// sumbu 'x' = dinding membentang searah x di z tetap; 'z' = dinding searah z di x tetap
 const DOOR_DEFS = [
   ['pintu utama', 'x', 12, -2, 2, 1, 0x3c5f8f],
   ['pintu Main Workspace', 'x', 4, -1, 3, 1, 0x4a7c59],
@@ -76,29 +85,48 @@ const PC_DEFS = [
   [13.25, 2.2, 0.8], [-13.5, -10.6, 0.9], [0, 7.0, 1.0]
 ];
 
-function makeComputer(scene, [x, z, deskH]) {
-  const g = new THREE.Group();
-  g.position.set(x, deskH, z);
+// memasang monitor, tiang, dan keyboard ke sebuah grup; mengembalikan mesh layarnya
+export function attachComputer(g) {
   const add = (geo, color, px, py, pz, basic) => {
     const m = new THREE.Mesh(geo, basic ? new THREE.MeshBasicMaterial({ color }) : new THREE.MeshLambertMaterial({ color }));
     m.position.set(px, py, pz);
     g.add(m);
     return m;
   };
-  add(new THREE.BoxGeometry(0.12, 0.15, 0.1), 0x2b2f36, 0, 0.075, 0);          // tiang
-  add(new THREE.BoxGeometry(0.64, 0.42, 0.04), 0x1b1e24, 0, 0.36, 0);          // bingkai monitor
-  const screen = add(new THREE.PlaneGeometry(0.56, 0.34), 0x15181d, 0, 0.36, 0.025, true); // layar
-  add(new THREE.BoxGeometry(0.4, 0.02, 0.14), 0x2b2f36, 0, 0.01, 0.28);        // keyboard
-  scene.add(g);
+  add(new THREE.BoxGeometry(0.12, 0.15, 0.1), 0x2b2f36, 0, 0.075, 0);                       // tiang
+  add(new THREE.BoxGeometry(0.64, 0.42, 0.04), 0x1b1e24, 0, 0.36, 0);                       // bingkai monitor
+  const screen = add(new THREE.PlaneGeometry(0.56, 0.34), 0x15181d, 0, 0.36, 0.025, true);  // layar
+  add(new THREE.BoxGeometry(0.4, 0.02, 0.14), 0x2b2f36, 0, 0.01, 0.28);                     // keyboard
+  return screen;
+}
 
+// logika komputer: bisa dinyalakan (E) dan menghasilkan uang saat menyala
+export function createPcLogic(screen, x, z) {
   const pc = { name: 'komputer', center: new THREE.Vector3(x, 0, z), radius: 2.4, on: false };
   pc.label = () => (pc.on ? 'Matikan' : 'Nyalakan') + ' komputer';
   pc.use = () => {
     pc.on = !pc.on;
     screen.material.color.set(pc.on ? 0x4fb3ff : 0x15181d);
-    toast(pc.on ? 'Komputer menyala (Mission Center menyusul di tahap 7)' : 'Komputer dimatikan');
+    toast(pc.on ? 'Komputer menyala' : 'Komputer dimatikan');
   };
+  pc.income = () => (pc.on ? INCOME.pc : 0);
+  screen.material.color.set(0x15181d);
   items.push(pc);
+  addProducer(pc);
+  return pc;
+}
+
+export function removePcLogic(pc) {
+  unregisterItem(pc);
+  removeProducer(pc);
+}
+
+function makeComputer(scene, [x, z, deskH]) {
+  const g = new THREE.Group();
+  g.position.set(x, deskH, z);
+  const screen = attachComputer(g);
+  scene.add(g);
+  createPcLogic(screen, x, z);
 }
 
 export function buildInteractives(scene) {
@@ -110,7 +138,6 @@ export function buildInteractives(scene) {
 export function updateInteractives(dt, pos) {
   playerPos.copy(pos);
 
-  // animasi pintu
   for (const d of doors) {
     const target = d.open ? 1 : 0;
     if (d.amt !== target) {
@@ -120,11 +147,12 @@ export function updateInteractives(dt, pos) {
     }
   }
 
-  // objek terdekat dalam jangkauan
   let best = null, bd = Infinity;
-  for (const it of items) {
-    const dist = Math.hypot(pos.x - it.center.x, pos.z - it.center.z);
-    if (dist < it.radius && dist < bd) { best = it; bd = dist; }
+  if (enabled) {
+    for (const it of items) {
+      const dist = Math.hypot(pos.x - it.center.x, pos.z - it.center.z);
+      if (dist < it.radius && dist < bd) { best = it; bd = dist; }
+    }
   }
   current = best;
   const el = document.getElementById('prompt');
