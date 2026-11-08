@@ -6,6 +6,7 @@ export const RADIUS = 0.4;
 export function collide(p) {
   for (let it = 0; it < 3; it++) {
     for (const s of solids) {
+      if (s.off) continue;
       const cx = Math.max(s.x1, Math.min(p.x, s.x2));
       const cz = Math.max(s.z1, Math.min(p.z, s.z2));
       const dx = p.x - cx, dz = p.z - cz;
@@ -34,6 +35,7 @@ export function rayClip(from, to) {
   const d = [to.x - from.x, to.y - from.y, to.z - from.z];
   const o = [from.x, from.y, from.z];
   for (const s of solids) {
+      if (s.off) continue;
     const lo = [s.x1, 0, s.z1], hi = [s.x2, s.h, s.z2];
     let t0 = 0, t1 = 1, hit = true;
     for (let i = 0; i < 3; i++) {
