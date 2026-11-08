@@ -3,16 +3,20 @@ import * as THREE from 'three';
 import { solids } from './world.js';
 import { RADIUS } from './collision.js';
 import { spend, earn, canAfford, fmt, addProducer, removeProducer, INCOME } from './economy.js';
-import { toast, setInteractEnabled, attachComputer, createPcLogic, removePcLogic } from './interact.js';
+import { toast, setInteractEnabled, createPcLogic, removePcLogic } from './interact.js';
+import { buildDesk, buildChair, buildServer, buildPlant, buildCabinet, buildSofa, attachComputer } from './furniture.js';
 
 export const CATALOG = [
   { id: 'desk', name: 'Meja', price: 250, w: 1.6, d: 0.8, h: 0.75 },
   { id: 'chair', name: 'Kursi', price: 80, w: 0.5, d: 0.5, h: 0.9 },
   { id: 'pc', name: 'Komputer', price: 900, w: 1.6, d: 0.8, h: 0.75 },   // meja + monitor
-  { id: 'server', name: 'Server', price: 1500, w: 0.8, d: 0.9, h: 2.0 }
+  { id: 'server', name: 'Server', price: 1500, w: 0.8, d: 0.9, h: 2.0 },
+  { id: 'plant', name: 'Tanaman', price: 60, w: 0.5, d: 0.5, h: 1.0 },
+  { id: 'cabinet', name: 'Lemari', price: 350, w: 1.0, d: 0.5, h: 1.8 },
+  { id: 'sofa', name: 'Sofa', price: 600, w: 1.8, d: 0.8, h: 0.85 }
 ];
 
-export const FREE_BUILD = true; // tahap 4: gratis. Tahap 5: ubah jadi false agar memakai uang
+export const FREE_BUILD = false; // false = beli pakai uang (tahap 5). true = gratis
 
 const BOUNDS = { x1: -15.7, x2: 15.7, z1: -11.7, z2: 11.7 }; // hanya boleh di dalam gedung
 const placed = [];          // furniture yang sudah ditaruh pemain
@@ -20,38 +24,21 @@ const aim = { x: 0, z: 0 }; // titik bidik di depan pemain
 let scene = null, bar = null, active = false, ghost = null;
 
 // ---------- Model 3D ----------
-function part(g, w, h, d, color, x, y, z, basic) {
-  const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), basic ? new THREE.MeshBasicMaterial({ color }) : new THREE.MeshLambertMaterial({ color }));
-  m.position.set(x, y, z);
-  m.castShadow = m.receiveShadow = true;
-  g.add(m);
-  return m;
-}
-
-function deskParts(g, w, d, color) {
-  part(g, w, 0.06, d, color, 0, 0.72, 0);
-  for (const sx of [-1, 1]) for (const sz of [-1, 1]) part(g, 0.06, 0.72, 0.06, color, sx * (w / 2 - 0.06), 0.36, sz * (d / 2 - 0.06));
-}
-
 function buildModel(def) {
-  const g = new THREE.Group();
-  const model = { group: g, screen: null };
-  if (def.id === 'desk') deskParts(g, def.w, def.d, 0x8a6a4a);
-  else if (def.id === 'chair') {
-    part(g, 0.45, 0.06, 0.45, 0x2f3a4a, 0, 0.45, 0);
-    part(g, 0.45, 0.5, 0.05, 0x2f3a4a, 0, 0.72, -0.2);
-    part(g, 0.06, 0.45, 0.06, 0x1b1e24, 0, 0.22, 0);
-  } else if (def.id === 'pc') {
-    deskParts(g, def.w, def.d, 0x9aa3b2);
+  let g, screen = null;
+  if (def.id === 'desk') g = buildDesk(def.w, def.d, def.h, 0x8a6a4a);
+  else if (def.id === 'chair') g = buildChair();
+  else if (def.id === 'pc') {
+    g = buildDesk(def.w, def.d, def.h, 0x9aa3b2);
     const sub = new THREE.Group();
-    sub.position.set(0, 0.75, -0.15);
-    model.screen = attachComputer(sub);
+    sub.position.set(0, def.h, -0.15);
+    screen = attachComputer(sub);
     g.add(sub);
-  } else if (def.id === 'server') {
-    part(g, def.w, def.h, def.d, 0x2b303a, 0, def.h / 2, 0);
-    [1.6, 1.3, 1.0].forEach((y) => part(g, 0.5, 0.06, 0.02, 0x39d98a, 0, y, def.d / 2 + 0.005, true));
-  }
-  return model;
+  } else if (def.id === 'server') g = buildServer(def.w, def.h, def.d);
+  else if (def.id === 'plant') g = buildPlant();
+  else if (def.id === 'cabinet') g = buildCabinet(def.w, def.h, def.d);
+  else g = buildSofa(def.w, def.d, def.h);
+  return { group: g, screen };
 }
 
 // ---------- Tempat dan validasi ----------
@@ -139,7 +126,7 @@ function toggleBuild() {
   if (!active) cancelGhost();
   setInteractEnabled(!active);
   bar.style.display = active ? 'flex' : 'none';
-  if (active) toast('Build Mode: pilih item (tombol 1-4)');
+  if (active) toast('Build Mode: pilih item (tombol 1-7)');
 }
 
 function select(i) {
@@ -156,7 +143,7 @@ function rotate() {
 
 export function buildConfirm() {
   if (!active) return;
-  if (!ghost) { toast('Pilih item dulu (tombol 1-4)'); return; }
+  if (!ghost) { toast('Pilih item dulu (tombol 1-7)'); return; }
   if (!ghost.valid) { toast('Tempat tidak valid'); return; }
   const g = ghost;
   if (g.moving) {
@@ -224,7 +211,7 @@ export function initBuild(s) {
   btn('Keluar', toggleBuild);
   const hint = document.createElement('div');
   hint.className = 'hint';
-  hint.textContent = '1-4 pilih · R putar · E atau klik taruh · F pindah · X ' + (FREE_BUILD ? 'hapus' : 'jual (60%)') + ' · B keluar';
+  hint.textContent = '1-7 pilih · R putar · E atau klik taruh · F pindah · X ' + (FREE_BUILD ? 'hapus' : 'jual (60%)') + ' · B keluar';
   bar.appendChild(hint);
 }
 
