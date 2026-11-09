@@ -39,5 +39,6 @@ export function updateEconomy(dt) {
   for (const p of producers) inc += p.income();
   eco.income = inc;
   eco.money += inc * dt;
+  if (eco.money < 0) eco.money = 0;
   render();
 }
