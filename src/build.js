@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import { solids } from './world.js';
 import { RADIUS } from './collision.js';
 import { spend, earn, canAfford, fmt, addProducer, removeProducer, INCOME } from './economy.js';
+import { prog, level, itemLevel, registerPanel, closeOthers } from './progress.js';
 import { toast, setInteractEnabled, createPcLogic, removePcLogic } from './interact.js';
 import { buildDesk, buildChair, buildServer, buildPlant, buildCabinet, buildSofa, attachComputer } from './furniture.js';
 
@@ -52,9 +53,14 @@ function rect(def, x, z, rot) {
   return { x1: x - hw, x2: x + hw, z1: z - hd, z2: z + hd };
 }
 
+function insideBuilding(r) {
+  if (r.x1 >= BOUNDS.x1 && r.x2 <= BOUNDS.x2 && r.z1 >= BOUNDS.z1 && r.z2 <= BOUNDS.z2) return true;
+  return prog.expanded && r.x1 >= -27.7 && r.x2 <= -16.3 && r.z1 >= 1.3 && r.z2 <= 10.7; // Training Room
+}
+
 function isValid(def, x, z, rot, pos) {
   const r = rect(def, x, z, rot);
-  if (r.x1 < BOUNDS.x1 || r.x2 > BOUNDS.x2 || r.z1 < BOUNDS.z1 || r.z2 > BOUNDS.z2) return false;
+  if (!insideBuilding(r)) return false;
   const e = 0.02;
   for (const s of solids) {
     if (s.off) continue;
@@ -77,7 +83,7 @@ function spawn(def, x, z, rot, model) {
   item.solid = { x1: r.x1, z1: r.z1, x2: r.x2, z2: r.z2, h: def.h, off: false };
   solids.push(item.solid);
   if (def.id === 'pc') item.pc = createPcLogic(m.screen, x, z);
-  if (def.id === 'server') { item.producer = { income: () => INCOME.server }; addProducer(item.producer); }
+  if (def.id === 'server') { item.producer = { kind: 'server', income: () => INCOME.server }; addProducer(item.producer); }
   placed.push(item);
   return item;
 }
@@ -104,6 +110,11 @@ function nearestPlaced(maxD) {
 }
 
 export function getPlacedPcs() { return placed.filter((i) => i.def.id === 'pc'); }
+export function getPlacedCounts() {
+  const c = {};
+  for (const it of placed) c[it.def.id] = (c[it.def.id] || 0) + 1;
+  return c;
+}
 
 // ---------- Ghost (pratinjau) ----------
 function makeGhost(def, moving) {
@@ -130,6 +141,7 @@ export function isBuilding() { return active; }
 
 function toggleBuild() {
   active = !active;
+  if (active) closeOthers('build');
   if (!active) cancelGhost();
   setInteractEnabled(!active);
   bar.style.display = active ? 'flex' : 'none';
@@ -140,6 +152,7 @@ function select(i) {
   const def = CATALOG[i];
   if (!def) return;
   cancelGhost();
+  if (level() < itemLevel(def.id)) { toast(def.name + ' butuh Level ' + itemLevel(def.id)); return; }
   if (!FREE_BUILD && !canAfford(def.price)) { toast('Uang tidak cukup untuk ' + def.name); return; }
   ghost = makeGhost(def, null);
 }
@@ -206,11 +219,12 @@ function btn(label, fn) {
 
 export function initBuild(s) {
   scene = s;
+  registerPanel('build', () => { if (active) toggleBuild(); });
   bar = document.getElementById('buildbar');
   const title = document.createElement('b');
   title.textContent = 'Build Mode';
   bar.appendChild(title);
-  CATALOG.forEach((def, i) => btn((i + 1) + ' ' + def.name + (FREE_BUILD ? '' : ' ' + fmt(def.price)), () => select(i)));
+  CATALOG.forEach((def, i) => btn((i + 1) + ' ' + def.name + (FREE_BUILD ? '' : ' ' + fmt(def.price)) + (itemLevel(def.id) > 1 ? ' (Lv' + itemLevel(def.id) + ')' : ''), () => select(i)));
   btn('Putar', rotate);
   btn('Taruh', buildConfirm);
   btn('Pindah', pickup);
