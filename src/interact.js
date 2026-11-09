@@ -72,6 +72,7 @@ function makeDoor(scene, def) {
         return;
       }
     }
+    d.auto = false;
     d.open = !d.open;
   };
   placeDoor(d);
@@ -90,9 +91,12 @@ const PC_DEFS = [
 export function createPcLogic(screen, x, z) {
   const pc = { name: 'komputer', center: new THREE.Vector3(x, 0, z), radius: 2.4, on: false };
   pc.label = () => (pc.on ? 'Matikan' : 'Nyalakan') + ' komputer';
+  pc.setOn = (v) => {
+    pc.on = v;
+    screen.material.color.set(v ? 0x4fb3ff : 0x15181d);
+  };
   pc.use = () => {
-    pc.on = !pc.on;
-    screen.material.color.set(pc.on ? 0x4fb3ff : 0x15181d);
+    pc.setOn(!pc.on);
     toast(pc.on ? 'Komputer menyala (+$' + INCOME.pc + '/dtk)' : 'Komputer dimatikan');
   };
   pc.income = () => (pc.on ? INCOME.pc : 0);
@@ -153,6 +157,32 @@ export function updateInteractives(dt, pos) {
     toastT -= dt;
     if (toastT <= 0) document.getElementById('toast').style.opacity = 0;
   }
+}
+
+function playerInDoorway(d) {
+  const along = d.axis === 'x' ? playerPos.x - d.mid : playerPos.z - d.mid;
+  const across = d.axis === 'x' ? playerPos.z - d.c : playerPos.x - d.c;
+  return Math.abs(along) < d.w / 2 + 0.4 && Math.abs(across) < 0.9;
+}
+
+// pintu terbuka sendiri saat ada karyawan mendekat, menutup lagi setelah mereka lewat
+export function assistDoors(points) {
+  for (const d of doors) {
+    const near = points.some((p) => Math.hypot(p.x - d.center.x, p.z - d.center.z) < 2.6);
+    if (near && !d.open) { d.open = true; d.auto = true; }
+    else if (!near && d.auto && !playerInDoorway(d)) { d.open = false; d.auto = false; }
+  }
+}
+
+// komputer terdekat dari sebuah titik (untuk karyawan yang bekerja)
+export function findPcNear(x, z, maxD) {
+  let best = null, bd = maxD;
+  for (const it of items) {
+    if (it.name !== 'komputer' || !it.setOn) continue;
+    const d = Math.hypot(it.center.x - x, it.center.z - z);
+    if (d < bd) { bd = d; best = it; }
+  }
+  return best;
 }
 
 export function useNearest() {
