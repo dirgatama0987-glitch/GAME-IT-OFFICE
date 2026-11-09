@@ -8,6 +8,7 @@ import { buildInteractives, updateInteractives, useNearest } from './interact.js
 import { updateEconomy } from './economy.js';
 import { initBuild, updateBuild, buildKey, buildConfirm, isBuilding } from './build.js';
 import { initNpc, updateNpcs, npcKey, isHireOpen, closeHire } from './npc.js';
+import { initCompany, updateCompany, companyKey } from './company.js';
 
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
@@ -20,6 +21,7 @@ buildWorld(scene);
 buildInteractives(scene);
 initBuild(scene);
 initNpc(scene);
+initCompany(scene);
 const player = createPlayer(scene);
 
 input.onToggleCam = toggleView;
@@ -29,6 +31,7 @@ input.onKey = (code) => {
   if (code === 'KeyB' && isHireOpen()) closeHire();
   buildKey(code);
   npcKey(code, isBuilding());
+  companyKey(code, isBuilding());
 };
 input.onPrimary = buildConfirm;
 initInput(renderer.domElement);
@@ -56,6 +59,7 @@ function tick(now) {
     updateEconomy(dt);
     updateBuild(dt, player.group.position, input.yaw);
     updateNpcs(dt);
+    updateCompany(dt, player.group.position);
     locT += dt;
     if (locT > 0.2) {
       locT = 0;
