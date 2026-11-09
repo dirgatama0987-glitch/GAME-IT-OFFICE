@@ -42,3 +42,14 @@ export function updateEconomy(dt) {
   if (eco.money < 0) eco.money = 0;
   render();
 }
+
+// rincian penghasilan per detik untuk Dashboard keuangan
+export function breakdown() {
+  const b = { pc: 0, server: 0, work: 0, salary: 0 };
+  for (const p of producers) {
+    if (p.kind === 'pc') b.pc += p.income();
+    else if (p.kind === 'server') b.server += p.income();
+    else if (p.kind === 'npc') { b.work += p.gross(); b.salary += p.salary; }
+  }
+  return b;
+}
