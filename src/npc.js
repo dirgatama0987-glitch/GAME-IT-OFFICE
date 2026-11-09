@@ -4,6 +4,7 @@ import { roomAt } from './world.js';
 import { spend, addProducer, removeProducer, fmt } from './economy.js';
 import { toast, assistDoors, findPcNear } from './interact.js';
 import { getPlacedPcs } from './build.js';
+import { prog, maxEmployees, registerPanel, closeOthers } from './progress.js';
 
 const MAX_NPC = 8, SALARY = 1, WORK_INCOME = 5, SPEED = 1.7;
 
@@ -174,7 +175,8 @@ function makeNpc(role) {
   const n = { name, role, group: p.group, legL: p.legL, legR: p.legR, armL: p.armL, armR: p.armR,
     state: 'walk', timer: 0, t: Math.random() * 10, walkT: 0, face: 0, path: [], spot: null, returning: false, pcOnByMe: null, at: 'RS' };
   n.path = route('OUT', 'RS').map(pt);
-  n.producer = { income: () => (n.state === 'act' && n.spot && n.spot.kind === 'work' ? WORK_INCOME : 0) - SALARY };
+  const gross = () => (n.state === 'act' && n.spot && n.spot.kind === 'work' ? WORK_INCOME : 0);
+  n.producer = { kind: 'npc', salary: SALARY, gross, income: () => gross() - SALARY };
   return n;
 }
 
@@ -208,6 +210,7 @@ function arrive(n) {
 function leave(n) {
   const s = n.spot;
   free(s);
+  if (s.kind === 'work') prog.sessions += 1;
   if (n.pcOnByMe) { n.pcOnByMe.setOn(false); n.pcOnByMe = null; }
   n.path = s.via.slice().reverse().map(([x, z]) => ({ x, z })).concat([pt(s.hub)]);
   n.spot = null;
@@ -275,7 +278,7 @@ export function updateNpcs(dt) {
 
 // ---------- Rekrut dan pecat ----------
 function updateInfo() {
-  if (info) info.textContent = 'Karyawan: ' + npcs.length + '/' + MAX_NPC + ' · gaji $' + SALARY + '/dtk per orang · bekerja +$' + WORK_INCOME + '/dtk';
+  if (info) info.textContent = 'Karyawan: ' + npcs.length + '/' + maxEmployees() + ' · gaji $' + SALARY + '/dtk per orang · bekerja +$' + WORK_INCOME + '/dtk';
 }
 
 function release(n) {
@@ -284,7 +287,7 @@ function release(n) {
 }
 
 function hire(role) {
-  if (npcs.length >= MAX_NPC) { toast('Kantor penuh (maksimal ' + MAX_NPC + ' karyawan)'); return; }
+  if (npcs.length >= maxEmployees()) { toast('Kapasitas penuh (' + maxEmployees() + '). Naik level untuk menambah'); return; }
   const cost = ROLES[role].cost;
   if (!spend(cost)) { toast('Uang tidak cukup untuk merekrut ' + role); return; }
   const n = makeNpc(role);
@@ -307,7 +310,7 @@ function fireLast() {
 // ---------- Panel rekrut (tombol H) ----------
 export function isHireOpen() { return open; }
 export function closeHire() { open = false; if (bar) bar.style.display = 'none'; }
-function openHire() { open = true; bar.style.display = 'flex'; updateInfo(); }
+function openHire() { closeOthers('hire'); open = true; bar.style.display = 'flex'; updateInfo(); }
 
 export function npcKey(code, building) {
   if (code === 'KeyH') {
@@ -332,6 +335,7 @@ function btn(label, fn) {
 
 export function initNpc(s) {
   scene = s;
+  registerPanel('hire', closeHire);
   bar = document.getElementById('hirebar');
   const title = document.createElement('b');
   title.textContent = 'Rekrut Karyawan';
@@ -343,4 +347,10 @@ export function initNpc(s) {
   info.className = 'hint';
   bar.appendChild(info);
   updateInfo();
+}
+
+const KIND_TEXT = { work: 'Bekerja', meet: 'Rapat', server: 'Cek server', reception: 'Jaga resepsionis', rest: 'Istirahat' };
+export function statusOf(n) {
+  if (n.state === 'act' && n.spot) return KIND_TEXT[n.spot.kind] || 'Bekerja';
+  return n.state === 'walk' ? 'Berjalan' : 'Menunggu';
 }
