@@ -36,3 +36,7 @@ html, body {
 #buildbar button { font-size: 12px; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); cursor: pointer; }
 #buildbar .hint { flex-basis: 100%; text-align: center; font-size: 11px; opacity: .8; }
 #bB { right: 100px; bottom: calc(172px + env(safe-area-inset-bottom, 0px)); }
+#hirebar { display: none; left: 50%; transform: translateX(-50%); top: calc(150px + env(safe-area-inset-top, 0px)); flex-wrap: wrap; gap: 6px; justify-content: center; align-items: center; width: max-content; max-width: 92vw; z-index: 4; }
+#hirebar button { font-size: 12px; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); cursor: pointer; }
+#hirebar .hint { flex-basis: 100%; text-align: center; font-size: 11px; opacity: .8; }
+#bH { right: 28px; bottom: calc(188px + env(safe-area-inset-bottom, 0px)); }
