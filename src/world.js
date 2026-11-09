@@ -113,7 +113,7 @@ export function buildWorld(scene) {
   // dinding luar (pintu masuk di sisi selatan)
   wall(scene, -16, 12, -2, 12); wall(scene, 2, 12, 16, 12);
   wall(scene, -16, -12, 16, -12);
-  wall(scene, -16, -12, -16, 12); wall(scene, 16, -12, 16, 12);
+  wall(scene, -16, -12, -16, 6); wall(scene, -16, 10, -16, 12); wall(scene, 16, -12, 16, 12); // celah z 6..10 = pintu perluasan
   // dinding dalam (celah = jalur masuk, ditutup pintu geser)
   wall(scene, -16, 4, -1, 4); wall(scene, 3, 4, 16, 4);
   [-6, 8].forEach((x) => {
@@ -153,4 +153,20 @@ export function buildWorld(scene) {
 export function roomAt(x, z) {
   for (const r of rooms) if (x >= r[1] && x <= r[3] && z >= r[2] && z <= r[4]) return r[0];
   return 'Di luar gedung';
+}
+
+// perluasan kantor (dibeli di Dashboard): Training Room di sisi barat Reception
+export const EXPANSION_ROOM = ['Training Room', -28, 1, -16, 11, 0xbfd9c9];
+export function buildExpansion(scene) {
+  const r = EXPANSION_ROOM;
+  rooms.push(r);
+  floor(scene, r[1], r[2], r[3], r[4], r[5]);
+  label(scene, r[0], (r[1] + r[3]) / 2, (r[2] + r[4]) / 2);
+  wall(scene, -28, 1, -16, 1); wall(scene, -28, 11, -16, 11); wall(scene, -28, 1, -28, 11);
+  prop(scene, -26.5, 1.4, -23.5, 2.9, 0.8, buildDesk(3, 1.5, 0.8, 0x9aa3b2));
+  prop(scene, -22.5, 1.4, -19.5, 2.9, 0.8, buildDesk(3, 1.5, 0.8, 0x9aa3b2));
+  decor(scene, buildChair(), -25, 3.6, Math.PI);
+  decor(scene, buildChair(), -21, 3.6, Math.PI);
+  decor(scene, buildPlant(), -26.8, 9.8);
+  decor(scene, buildPlant(), -17.2, 9.8);
 }
