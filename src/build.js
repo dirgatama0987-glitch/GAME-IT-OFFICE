@@ -34,6 +34,10 @@ function buildModel(def) {
     sub.position.set(0, def.h, -0.15);
     screen = attachComputer(sub);
     g.add(sub);
+    const seat = buildChair();   // kursi untuk karyawan
+    seat.position.set(0, 0, 0.95);
+    seat.rotation.y = Math.PI;
+    g.add(seat);
   } else if (def.id === 'server') g = buildServer(def.w, def.h, def.d);
   else if (def.id === 'plant') g = buildPlant();
   else if (def.id === 'cabinet') g = buildCabinet(def.w, def.h, def.d);
@@ -79,6 +83,7 @@ function spawn(def, x, z, rot, model) {
 }
 
 function detach(item) {
+  item.removed = true;
   const i = solids.indexOf(item.solid);
   if (i >= 0) solids.splice(i, 1);
   if (item.pc) removePcLogic(item.pc);
@@ -97,6 +102,8 @@ function nearestPlaced(maxD) {
   }
   return best;
 }
+
+export function getPlacedPcs() { return placed.filter((i) => i.def.id === 'pc'); }
 
 // ---------- Ghost (pratinjau) ----------
 function makeGhost(def, moving) {
