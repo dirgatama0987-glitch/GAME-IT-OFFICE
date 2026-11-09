@@ -141,7 +141,7 @@ export function buildWorld(scene) {
   prop(scene, -12.9, 10.8, -11.1, 11.6, 0.85, buildSofa(1.8, 0.8, 0.85), Math.PI); // sofa reception
 
   // kursi di meja kerja
-  [[-2.5, -6.9], [2.5, -6.9], [-2.5, -0.9], [2.5, -0.9], [13.25, 3.7], [-13.5, -8.9]].forEach(([x, z]) => decor(scene, buildChair(), x, z, Math.PI));
+  [[-2.5, -6.9], [2.5, -6.9], [-2.5, -0.9], [2.5, -0.9], [13.25, 3.55], [-13.5, -8.9]].forEach(([x, z]) => decor(scene, buildChair(), x, z, Math.PI));
   [[-12, -2.1, 0], [-10, -2.1, 0], [-12, 2.1, Math.PI], [-10, 2.1, Math.PI], [-13.9, 0, Math.PI / 2], [-8.1, 0, -Math.PI / 2]]
     .forEach(([x, z, r]) => decor(scene, buildChair(), x, z, r));
 
