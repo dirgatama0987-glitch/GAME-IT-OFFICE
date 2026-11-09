@@ -10,7 +10,7 @@ Dibuat dengan HTML, CSS, JavaScript, Three.js, dan Vite.
 - [x] Tahap 3: objek interaktif (komputer) dan sistem pintu geser (tombol E)
 - [x] Tahap 4: Build Mode (taruh, putar, pindah, hapus furniture di dunia 3D)
 - [x] Tahap 5: ekonomi tycoon dan shop (uang virtual, harga, penghasilan per detik)
-- [ ] Tahap 6: NPC karyawan (state + waypoint)
+- [x] Tahap 6: NPC karyawan (state + waypoint: rekrut, duduk, bekerja, rapat, istirahat)
 - [ ] Tahap 7: misi dan manajemen bisnis
 - [ ] Tahap 8: save system dan optimasi
 
@@ -26,6 +26,7 @@ Dibuat dengan HTML, CSS, JavaScript, Three.js, dan Vite.
 | Zoom kamera (third person) | Scroll mouse | - |
 | Interaksi (pintu, komputer) | E | Tombol E |
 | Build Mode | B | Tombol Bangun |
+| Rekrut karyawan (1 Programmer, 2 Designer, 3 Admin, 4 pecat) | H | Tombol Rekrut |
 | Pilih item di shop (Meja, Kursi, Komputer, Server, Tanaman, Lemari, Sofa) | 1 sampai 7 | Tombol di panel |
 | Putar / taruh / pindah / jual (60%) | R / E atau klik / F / X | Tombol di panel |
 
@@ -69,6 +70,7 @@ src/
 ├─ economy.js     uang virtual dan penghasilan per detik
 ├─ build.js       Build Mode: shop, taruh, pindah, jual furniture
 ├─ furniture.js   model 3D furnitur yang detail
+├─ npc.js         karyawan NPC: rekrut, waypoint, duduk, bekerja
 ├─ camera.js      kamera first person dan third person
 ├─ input.js       kontrol PC dan mobile
 └─ style.css      tampilan HUD dan kontrol sentuh
