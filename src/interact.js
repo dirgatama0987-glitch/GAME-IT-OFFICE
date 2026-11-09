@@ -35,7 +35,8 @@ const DOOR_DEFS = [
   ['pintu CEO Room', 'z', -6, -9, -7, -1, 0x8a5a3c],
   ['pintu Meeting Room', 'z', -6, -1, 1, 1, 0x7a5a8a],
   ['pintu Server Room', 'z', 8, -9, -7, -1, 0x555c6b],
-  ['pintu Development Room', 'z', 8, -1, 1, 1, 0x3f7f7a]
+  ['pintu Development Room', 'z', 8, -1, 1, 1, 0x3f7f7a],
+  ['pintu perluasan', 'z', -16, 6, 10, -1, 0x8a7a3c, true] // terkunci sampai perluasan dibeli
 ];
 
 function placeDoor(d) {
@@ -46,7 +47,7 @@ function placeDoor(d) {
 }
 
 function makeDoor(scene, def) {
-  const [name, axis, c, a, b, dir, color] = def;
+  const [name, axis, c, a, b, dir, color, locked] = def;
   const w = b - a, h = 3, th = 0.12, t = 0.15;
   const geo = axis === 'x' ? new THREE.BoxGeometry(w, h, th) : new THREE.BoxGeometry(th, h, w);
   const mesh = new THREE.Mesh(geo, new THREE.MeshLambertMaterial({ color }));
@@ -60,9 +61,10 @@ function makeDoor(scene, def) {
 
   const mid = (a + b) / 2;
   const center = axis === 'x' ? new THREE.Vector3(mid, 0, c) : new THREE.Vector3(c, 0, mid);
-  const d = { name, axis, c, mid, w, dir, mesh, solid, center, amt: 0, open: false, radius: 2.6 };
-  d.label = () => (d.open ? 'Tutup ' : 'Buka ') + name;
+  const d = { name, axis, c, mid, w, dir, mesh, solid, center, amt: 0, open: false, radius: 2.6, locked: !!locked };
+  d.label = () => (d.locked ? 'Terkunci: beli Perluasan di Dashboard (K)' : (d.open ? 'Tutup ' : 'Buka ') + name);
   d.use = () => {
+    if (d.locked) { toast('Pintu terkunci. Beli Perluasan Kantor di Dashboard (K)'); return; }
     if (d.open) {
       // jangan menutup pintu kalau pemain sedang berdiri di ambangnya
       const along = d.axis === 'x' ? playerPos.x - d.mid : playerPos.z - d.mid;
@@ -90,7 +92,7 @@ const PC_DEFS = [
 // logika komputer: bisa dinyalakan (E) dan menghasilkan uang saat menyala
 export function createPcLogic(screen, x, z) {
   const pc = { name: 'komputer', center: new THREE.Vector3(x, 0, z), radius: 2.4, on: false };
-  pc.label = () => (pc.on ? 'Matikan' : 'Nyalakan') + ' komputer';
+  pc.label = () => (pc.on ? 'Matikan komputer · M untuk Mission Center' : 'Nyalakan komputer');
   pc.setOn = (v) => {
     pc.on = v;
     screen.material.color.set(v ? 0x4fb3ff : 0x15181d);
@@ -100,6 +102,7 @@ export function createPcLogic(screen, x, z) {
     toast(pc.on ? 'Komputer menyala (+$' + INCOME.pc + '/dtk)' : 'Komputer dimatikan');
   };
   pc.income = () => (pc.on ? INCOME.pc : 0);
+  pc.kind = 'pc';
   screen.material.color.set(0x15181d);
   items.push(pc);
   addProducer(pc);
@@ -168,6 +171,7 @@ function playerInDoorway(d) {
 // pintu terbuka sendiri saat ada karyawan mendekat, menutup lagi setelah mereka lewat
 export function assistDoors(points) {
   for (const d of doors) {
+    if (d.locked) continue;
     const near = points.some((p) => Math.hypot(p.x - d.center.x, p.z - d.center.z) < 2.6);
     if (near && !d.open) { d.open = true; d.auto = true; }
     else if (!near && d.auto && !playerInDoorway(d)) { d.open = false; d.auto = false; }
@@ -183,6 +187,20 @@ export function findPcNear(x, z, maxD) {
     if (d < bd) { bd = d; best = it; }
   }
   return best;
+}
+
+export function unlockDoor(name) {
+  const d = doors.find((x) => x.name === name);
+  if (d) d.locked = false;
+}
+
+export function countPcsOn() {
+  return items.filter((it) => it.name === 'komputer' && it.on).length;
+}
+
+// apakah pemain berdiri dekat komputer yang menyala (syarat membuka Mission Center)
+export function nearOnPc(pos) {
+  return items.some((it) => it.name === 'komputer' && it.on && Math.hypot(pos.x - it.center.x, pos.z - it.center.z) < it.radius);
 }
 
 export function useNearest() {
