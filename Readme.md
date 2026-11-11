@@ -12,7 +12,8 @@ Dibuat dengan HTML, CSS, JavaScript, Three.js, dan Vite.
 - [x] Tahap 5: ekonomi tycoon dan shop (uang virtual, harga, penghasilan per detik)
 - [x] Tahap 6: NPC karyawan (state + waypoint: rekrut, duduk, bekerja, rapat, istirahat)
 - [x] Tahap 7: misi dan manajemen bisnis (Mission Center, Dashboard, keuangan, level, perluasan kantor)
-- [ ] Tahap 8: save system dan optimasi
+- [x] Tahap 9: gedung bertingkat (sampai 9 lantai, lift), 9 furnitur fungsional, karyawan fokus per jabatan, model orang realistis
+- [x] Tahap 8: save system (simpan otomatis tiap 15 detik di browser) dan optimasi (material dipakai bersama, resolusi adaptif, bayangan ringan di HP)
 
 ## Kontrol
 
@@ -75,6 +76,9 @@ src/
 ├─ npc.js         karyawan NPC: rekrut, waypoint, duduk, bekerja
 ├─ company.js     Mission Center, Dashboard, level, perluasan kantor
 ├─ progress.js    XP, level, dan status perusahaan bersama
+├─ save.js        simpan/muat progres (localStorage) dan reset
+├─ floors.js      lantai tambahan dan lift
+├─ person.js      model orang (sendi, wajah, rambut)
 ├─ camera.js      kamera first person dan third person
 ├─ input.js       kontrol PC dan mobile
 └─ style.css      tampilan HUD dan kontrol sentuh
