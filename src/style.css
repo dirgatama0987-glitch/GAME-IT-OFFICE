@@ -41,12 +41,13 @@ html, body {
 #hirebar .hint { flex-basis: 100%; text-align: center; font-size: 11px; opacity: .8; }
 #bH { right: 28px; bottom: calc(188px + env(safe-area-inset-bottom, 0px)); }
 #lv { right: 12px; top: calc(52px + env(safe-area-inset-top, 0px)); font-size: 12px; z-index: 3; }
-#dash, #missions { display: none; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(92vw, 420px); max-height: 72vh; overflow: auto; z-index: 6; }
+#dash, #missions, #lift { display: none; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(92vw, 420px); max-height: 72vh; overflow: auto; z-index: 6; }
 #dash .dbody, #missions .dbody { margin: 6px 0; font-size: 13px; line-height: 1.6; }
 #dash .dh { font-weight: 700; margin-top: 6px; color: var(--acc); }
 #dash .drow { display: flex; gap: 6px; }
-#dash button, #missions button { font-size: 12px; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); cursor: pointer; }
+#dash button, #missions button, #lift button { font-size: 12px; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); cursor: pointer; }
 #missions .mrow { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 3px 0; border-bottom: 1px solid var(--line); }
 #missions .hint { font-size: 11px; opacity: .8; }
 #bK { right: 100px; bottom: calc(244px + env(safe-area-inset-bottom, 0px)); }
 #bM { right: 28px; bottom: calc(260px + env(safe-area-inset-bottom, 0px)); }
+#lift .dbody { display: flex; flex-direction: column; gap: 6px; margin: 8px 0; }
