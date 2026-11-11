@@ -1,12 +1,14 @@
-// Tabrakan lingkaran (karakter) vs kotak (dinding dan perabot) pada bidang XZ
+// Tabrakan lingkaran (karakter) vs kotak (dinding dan perabot) pada bidang XZ, per lantai
 import { solids } from './world.js';
+import { floorOf } from './progress.js';
 
 export const RADIUS = 0.4;
 
 export function collide(p) {
+  const fl = floorOf(p.y);
   for (let it = 0; it < 3; it++) {
     for (const s of solids) {
-      if (s.off) continue;
+      if (s.off || s.camOnly || (s.fl || 0) !== fl) continue;
       const cx = Math.max(s.x1, Math.min(p.x, s.x2));
       const cz = Math.max(s.z1, Math.min(p.z, s.z2));
       const dx = p.x - cx, dz = p.z - cz;
@@ -28,15 +30,15 @@ export function collide(p) {
   }
 }
 
-// Sinar dari titik 'from' ke 'to' vs kotak 3D (dinding dan perabot).
+// Sinar dari titik 'from' ke 'to' vs kotak 3D (dinding, perabot, pelat lantai).
 // Mengembalikan 0..1 = posisi tabrakan pertama di sepanjang sinar, atau 1 jika bebas.
 export function rayClip(from, to) {
   let tmin = 1;
   const d = [to.x - from.x, to.y - from.y, to.z - from.z];
   const o = [from.x, from.y, from.z];
   for (const s of solids) {
-      if (s.off) continue;
-    const lo = [s.x1, 0, s.z1], hi = [s.x2, s.h, s.z2];
+    if (s.off) continue;
+    const lo = [s.x1, s.y0 || 0, s.z1], hi = [s.x2, s.h, s.z2];
     let t0 = 0, t1 = 1, hit = true;
     for (let i = 0; i < 3; i++) {
       if (Math.abs(d[i]) < 1e-8) {
