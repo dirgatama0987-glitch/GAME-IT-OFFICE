@@ -4,6 +4,7 @@ import { solids } from './world.js';
 import { coarse } from './input.js';
 import { addProducer, removeProducer, INCOME } from './economy.js';
 import { attachComputer } from './furniture.js';
+import { floorOf } from './progress.js';
 
 const items = [];            // semua objek yang bisa diajak interaksi
 const doors = [];
@@ -90,8 +91,8 @@ const PC_DEFS = [
 ];
 
 // logika komputer: bisa dinyalakan (E) dan menghasilkan uang saat menyala
-export function createPcLogic(screen, x, z) {
-  const pc = { name: 'komputer', center: new THREE.Vector3(x, 0, z), radius: 2.4, on: false };
+export function createPcLogic(screen, x, z, fl = 0) {
+  const pc = { name: 'komputer', center: new THREE.Vector3(x, 0, z), radius: 2.4, on: false, fl };
   pc.label = () => (pc.on ? 'Matikan komputer · M untuk Mission Center' : 'Nyalakan komputer');
   pc.setOn = (v) => {
     pc.on = v;
@@ -142,7 +143,9 @@ export function updateInteractives(dt, pos) {
 
   let best = null, bd = Infinity;
   if (enabled) {
+    const fl = floorOf(pos.y || 0);
     for (const it of items) {
+      if (it.fl !== 'all' && (it.fl || 0) !== fl) continue;
       const dist = Math.hypot(pos.x - it.center.x, pos.z - it.center.z);
       if (dist < it.radius && dist < bd) { best = it; bd = dist; }
     }
@@ -172,7 +175,7 @@ function playerInDoorway(d) {
 export function assistDoors(points) {
   for (const d of doors) {
     if (d.locked) continue;
-    const near = points.some((p) => Math.hypot(p.x - d.center.x, p.z - d.center.z) < 2.6);
+    const near = points.some((p) => (p.y || 0) < 1.5 && Math.hypot(p.x - d.center.x, p.z - d.center.z) < 2.6);
     if (near && !d.open) { d.open = true; d.auto = true; }
     else if (!near && d.auto && !playerInDoorway(d)) { d.open = false; d.auto = false; }
   }
@@ -182,7 +185,7 @@ export function assistDoors(points) {
 export function findPcNear(x, z, maxD) {
   let best = null, bd = maxD;
   for (const it of items) {
-    if (it.name !== 'komputer' || !it.setOn) continue;
+    if (it.name !== 'komputer' || !it.setOn || (it.fl || 0) !== 0) continue;
     const d = Math.hypot(it.center.x - x, it.center.z - z);
     if (d < bd) { bd = d; best = it; }
   }
@@ -200,7 +203,8 @@ export function countPcsOn() {
 
 // apakah pemain berdiri dekat komputer yang menyala (syarat membuka Mission Center)
 export function nearOnPc(pos) {
-  return items.some((it) => it.name === 'komputer' && it.on && Math.hypot(pos.x - it.center.x, pos.z - it.center.z) < it.radius);
+  const fl = floorOf(pos.y || 0);
+  return items.some((it) => it.name === 'komputer' && it.on && (it.fl || 0) === fl && Math.hypot(pos.x - it.center.x, pos.z - it.center.z) < it.radius);
 }
 
 export function useNearest() {
