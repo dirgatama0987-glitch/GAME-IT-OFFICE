@@ -1,6 +1,7 @@
 // Kamera first person dan third person (tombol V, scroll untuk zoom)
 import * as THREE from 'three';
 import { rayClip } from './collision.js';
+import { FLOOR_H, floorOf } from './progress.js';
 
 export const camera = new THREE.PerspectiveCamera(70, 1, 0.1, 200);
 
@@ -50,7 +51,7 @@ export function updateCamera(dt, playerGroup, yaw, pitch, st) {
 
   // posisi kamera yang diinginkan, lalu cek apakah ada dinding/perabot di jalur
   want.copy(head).addScaledVector(dir, -view.dist);
-  want.y = Math.max(0.3, want.y);
+  want.y = Math.max(floorOf(y) * FLOOR_H + 0.3, want.y);
   let targetClip = 1;
   if (view.dist > 0.05) {
     const c = rayClip(head, want);
